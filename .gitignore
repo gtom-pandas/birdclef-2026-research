@@ -6,6 +6,8 @@ __pycache__/
 .kaggle/
 kaggle.json
 raw/
+notebooks/
+artifacts/
 
 # Generated local files
 *.zip

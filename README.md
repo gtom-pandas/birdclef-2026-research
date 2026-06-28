@@ -1,6 +1,9 @@
-# BirdCLEF 2026 Research Report
+# BirdCLEF 2026 Research
 
-Portfolio-ready research archive for my Kaggle BirdCLEF 2026 work.
+Portfolio-ready research archive for my Kaggle BirdCLEF 2026 work. The repo is
+kept intentionally compact: no raw notebook dump, no model weights, no Kaggle
+datasets. It keeps the solution narrative, curated metadata and executable
+reference scripts.
 
 ## What This Repo Shows
 
@@ -38,11 +41,11 @@ The competition solution combined:
 
 - `reports/research_report.md` - full research narrative, bottlenecks, and lessons learned.
 - `reports/portfolio_blurb.md` - short text blocks for portfolio integration.
-- `notebooks/` - pulled Kaggle notebooks, cleaned of execution outputs.
+- `docs/experiment_summary.md` - compact replacement for the removed notebook dump.
 - `data/submissions.csv` - curated submission history.
 - `data/leaderboard_summary.csv` - final public leaderboard row.
 - `data/notebook_inventory.csv` - notebook inventory and detected technical themes.
-- `src/artifact_summary.py` - utility script to rebuild the local artifact summary.
+- `src/artifact_summary.py` - utility script to summarize the curated CSV metadata.
 - `src/train.py` - reproducible PyTorch training entrypoint for the compact
   temporal sequence head trained on precomputed acoustic features.
 - `src/infer.py` - fold averaging, prior fusion and rank-blend inference script
@@ -67,7 +70,8 @@ The work evolved from Perch-based audio inference and lightweight tabular/probe 
 python src/artifact_summary.py --root .
 ```
 
-This script expects the Kaggle-pulled notebooks and curated CSV files to already exist locally.
+This script reads the curated CSV files only. Raw notebooks were removed from
+GitHub because they made the repo harder to review without adding much signal.
 
 ## Scripted Pipeline
 

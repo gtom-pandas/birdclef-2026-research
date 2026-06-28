@@ -1,15 +1,14 @@
-"""Summarize local BirdCLEF 2026 Kaggle artifacts.
+"""Summarize the public BirdCLEF 2026 research metadata.
 
-The script reads the curated CSV files and Kaggle-pulled notebooks in this
-repository. It does not call Kaggle APIs; it is intended for local reproducible
-inspection after artifacts have been pulled.
+The repository intentionally does not track the raw Kaggle notebook exports.
+This script summarizes the curated CSV files that replace those artifacts in the
+public repo: submission history, leaderboard row and notebook-theme inventory.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
-import json
 from pathlib import Path
 
 
@@ -93,20 +92,6 @@ def summarize_notebooks(root: Path) -> None:
         print(f"- {keyword}: {count}")
 
 
-def validate_notebooks(root: Path) -> None:
-    broken = []
-    for path in (root / "notebooks").rglob("*.ipynb"):
-        try:
-            json.loads(path.read_text(encoding="utf-8"))
-        except Exception as exc:  # pragma: no cover - CLI diagnostic
-            broken.append((path, exc))
-    print("\nNotebook validation")
-    print(f"- parsed notebooks: {len(list((root / 'notebooks').rglob('*.ipynb')))}")
-    print(f"- broken notebooks: {len(broken)}")
-    for path, exc in broken[:10]:
-        print(f"  - {path}: {exc}")
-
-
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path.cwd())
@@ -116,7 +101,6 @@ def main() -> None:
     summarize_submissions(root)
     summarize_leaderboard(root)
     summarize_notebooks(root)
-    validate_notebooks(root)
 
 
 if __name__ == "__main__":
