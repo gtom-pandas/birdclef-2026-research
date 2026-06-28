@@ -1,0 +1,34 @@
+{
+  "id": "ttgrcgrc/birdclef-2026-s124-s114-g124-f1-rankblend",
+  "id_no": 119925844,
+  "title": "BirdCLEF 2026 S124 S114 G124 F1 RankBlend",
+  "code_file": "birdclef-2026-s124-s114-g124-f1-rankblend.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "keywords": [],
+  "dataset_sources": [
+    "",
+    "tuckerarrants/bc2026-distilled-sed-public",
+    "itshyao/birdclef2026-g124-effv2s-2025pre-pseudo-assets",
+    "jaejohn/perch-meta",
+    "tuckerarrants/perch-v2-no-dft-onnx",
+    "rishikeshjani/perch-onnx-for-birdclef-2026",
+    "hideyukizushi/sgkfk-202604041716"
+  ],
+  "kernel_sources": [
+    "ashok205/tf-wheels",
+    "hideyukizushi/bird26-reprod-perch-proto-residualssm-train-s7177"
+  ],
+  "competition_sources": [
+    "birdclef-2026"
+  ],
+  "model_sources": [
+    "google/bird-vocalization-classifier/TensorFlow2/perch_v2_cpu/1"
+  ],
+  "docker_image": "gcr.io/kaggle-images/python@sha256:c370a5ff133d162d17c2dca332b50f3e85c0b0ed1471ee18e98e3009eee80b08",
+  "machine_shape": "None"
+}

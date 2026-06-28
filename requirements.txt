@@ -1,0 +1,9 @@
+pandas
+numpy
+scikit-learn
+torch
+tensorflow
+librosa
+soundfile
+tqdm
+onnxruntime

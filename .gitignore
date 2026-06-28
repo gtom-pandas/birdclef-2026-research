@@ -1,0 +1,13 @@
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Local Kaggle/API material and raw dumps
+.kaggle/
+kaggle.json
+raw/
+
+# Generated local files
+*.zip
+*.log
+submission.csv

@@ -1,0 +1,23 @@
+{
+  "id": "ttgrcgrc/birdclef-2026-exp-17-effnet20s-b0-no-prior",
+  "id_no": 116075832,
+  "title": "Birdclef 2026 Exp 17 Effnet20S B0 No Prior",
+  "code_file": "birdclef-2026-exp-17-effnet20s-b0-no-prior.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [
+    "gpu"
+  ],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [
+    "birdclef-2026"
+  ],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-private-byod/python@sha256:00377cd1b3d470a605bc5b0ceca79969e369644e9b36802242a1c70e627372f9",
+  "machine_shape": "Gpu"
+}

@@ -1,0 +1,51 @@
+date,description,publicScore,privateScore,status,ref,fileName
+2026-04-20 06:46:47.770000,Notebook Version 3 lgbm | Version 1,0.92948,0.92345,COMPLETE,51870726,submission.csv
+2026-04-21 07:02:44.263000,Notebook BirdCLEF+ 26 | Two-Pass SSM + Advanced PP | Version 1,0.92746,0.92645,COMPLETE,51901734,submission.csv
+2026-04-21 07:03:09.583000,Notebook BirdCLEF 2026 � ONNX Perch + Sequence Model 302597 | Version 1,0.92849,0.92303,COMPLETE,51901744,submission.csv
+2026-04-21 07:03:55.207000,Notebook notebookebe86947bc | Version 1,,,COMPLETE,51901761,submission.csv
+2026-04-21 07:04:05.780000,Notebook notebookebe86947bc c74d0c | Version 1,,,COMPLETE,51901766,submission.csv
+2026-04-22 06:45:15.353000,Notebook BirdCLEF+ 2026 Iter-Pseudo Perch+SED LB 0.934 | Version 1,0.92858,0.92197,COMPLETE,51927860,submission.csv
+2026-04-22 06:45:53.527000,Notebook birdclef | 2026 | Version 1,,,COMPLETE,51927876,submission.csv
+2026-04-23 06:45:35.333000,Notebook test-0.929 mod w11-oof-framework-miaaaf | Version 1,0.5,0.5,COMPLETE,51959221,submission.csv
+2026-04-23 06:46:37.993000,Notebook BirdCLEF+ 26 | Two-Pass SSM + Advanced PP d9c348 | Version 1,0.92798,0.92314,COMPLETE,51959257,submission.csv
+2026-04-24 07:37:36.523000,Notebook 0.932\xe3\x80\x80test mod version 4 | Version 1,0.91836,0.91707,COMPLETE,51991153,submission.csv
+2026-04-25 06:32:57.533000,EXP-20 iter pseudo + Perch SED frontier anchor,0.92509,0.91882,COMPLETE,52022581,submission.csv
+2026-04-25 10:22:10.967000,EXP-11 SED hybrid no pseudo no prior,,,COMPLETE,52028287,submission.csv
+2026-04-26 07:47:15.987000,EXP-21 true m23 + SED hybrid + pseudo no prior,0.91543,0.916,COMPLETE,52057310,submission.csv
+2026-04-27 06:37:29.887000,Notebook BirdCLEF+ 26 | ONNX Perch Dual SSMs Vectorized-MLP | Version 1,0.92633,0.92445,COMPLETE,52089127,submission.csv
+2026-04-28 06:38:32.153000,Notebook BirdCLEF+ 2026 | Ensemble of solutions | Version 1,0.92924,0.92831,COMPLETE,52122974,submission.csv
+2026-04-28 12:00:26.777000,Notebook BirdCLEF+ 26 | ONNX Perch Dual SSMs Vectori 87d214 | Version 1,0.92396,0.92443,COMPLETE,52131671,submission.csv
+2026-04-29 11:00:47.347000,Notebook BirdCLEF+ 2026 | Ensemble of solutions 9063a4 | Version 1,0.93154,0.92731,COMPLETE,52165502,submission.csv
+2026-04-29 16:16:01.190000,EXP-26 v18x delta-only alpha 0.20,0.90941,0.90157,COMPLETE,52174261,submission.csv
+2026-04-29 16:35:00.947000,EXP-27 0.931 ensemble Model5-only ablation,0.92666,0.92633,COMPLETE,52174788,submission.csv
+2026-04-30 06:52:20.983000,Notebook SUB 080 Yuriy DualSSM | Version 1,0.92852,0.92381,COMPLETE,52193138,submission.csv
+2026-04-30 13:31:46.350000,Notebook BirdCLEF ProtoSSM + EfficientNet SED (All Public) | Version 1,0.93428,0.93588,COMPLETE,52203860,submission.csv
+2026-05-01 07:41:47.780000,EXP-29 0.934 ProtoSSM-only ablation,0.91559,0.92508,COMPLETE,52228417,submission.csv
+2026-05-01 12:06:59.530000,Notebook BirdCLEF ProtoSSM + EfficientNet | Version 1,0.93515,0.9364,COMPLETE,52234739,submission.csv
+2026-05-01 12:07:23.233000,Notebook BirdCLEF ProtoSSM + EfficientNet SED (All P 0db1a0 | Version 1,0.93524,0.92983,COMPLETE,52234752,submission.csv
+2026-05-02 09:42:23.627000,Notebook BirdCLEF+ 2026 0.941 | ONNX Perch Sequence + SED | Version 1,0.94307,0.93793,COMPLETE,52258824,submission.csv
+2026-05-02 14:34:18.387000,Notebook BirdCLEF+ 2026 0.943+ | Better Blend | Version 1,0.94209,0.93738,COMPLETE,52264768,submission.csv
+2026-05-03 06:20:23.593000,EXP-31 kernel v1 public frontier 0.943 sequence SED anchor,0.93928,0.93746,COMPLETE,52279931,submission.csv
+2026-05-09 06:58:48.887000,Notebook 0.946 Replay With Robust Inputs | Version 1,0.94475,0.93706,COMPLETE,52475175,submission.csv
+2026-05-09 06:59:16.010000,Notebook BirdCLEF+ 2026 � Perch v2 + ProtoSSM � 0.925 | Version 1,0.94611,0.93842,COMPLETE,52475182,submission.csv
+2026-05-10 06:53:04.897000,EXP-42 public frontier 0.946 Perch v2 ProtoSSM anchor approved 2026-05-10,0.94611,0.93842,COMPLETE,52505790,submission.csv
+2026-05-13 15:24:18.510000,Notebook tedBirdCLEF+ 2026 Improved | Version 1,0.94718,0.94056,COMPLETE,52620681,submission.csv
+2026-05-13 15:24:21.700000,Notebook BirdCLEF+ 2026 | Ensemble of solutions 46ce0c | Version 1,0.9473,0.94032,COMPLETE,52620687,submission.csv
+2026-05-15 08:36:19.933000,Notebook BirdCLEF+ 2026 | Ensemble of solutions.2 | Version 2,0.94733,0.94054,COMPLETE,52674960,submission.csv
+2026-05-16 08:40:45.787000,Notebook BirdCLEF+ 2026 | EoS.4 | Version 1,0.94735,0.94053,COMPLETE,52703597,submission.csv
+2026-05-18 07:20:21.707000,Notebook BirdCLEF+ 2026 | EoS.5 | Version 1,0.94903,0.94075,COMPLETE,52766789,submission.csv
+2026-05-18 07:35:01.790000,Notebook BirdCLEF 2026 | Visual CPU Inference | Version 1,0.94863,0.94066,COMPLETE,52767144,submission.csv
+2026-05-18 07:42:20.167000,Notebook Gated Rank Fusion Pipeline | Version 1,0.94899,0.94071,COMPLETE,52767361,submission.csv
+2026-05-19 07:01:24.030000,Notebook BirdCLEF+ 2026 | EoS.5 a943b1 | Version 1,0.94904,0.94075,COMPLETE,52801301,submission.csv
+2026-05-19 09:02:50.400000,Notebook BirdCLEF+ 2026 | EoS.5 a943b1 | Version 2,0.94903,0.94075,COMPLETE,52804935,submission.csv
+2026-05-19 10:23:56.460000,Notebook BirdCLEF+ 2026 | EoS.5 a943b1 | Version 3,0.949,0.9407,COMPLETE,52807084,submission.csv
+2026-05-20 06:36:57.910000,Notebook BirdCLEF 2026 S124 S114 G124 F1 RankBlend | Version 1,0.94903,0.94075,COMPLETE,52840972,submission.csv
+2026-05-20 06:37:15.867000,Notebook BirdCLEF+ 2026 | EoS.6 | Version 1,0.94938,0.94038,COMPLETE,52840985,submission.csv
+2026-05-22 12:57:18.413000,Notebook BirdCLEF+ 2026 V6 | Version 1,0.949,0.94063,COMPLETE,52925333,submission.csv
+2026-05-26 06:45:31.487000,Notebook BirdCLEF+ 2026 | EoS.7 (sz) | Version 1,0.9497,0.93959,COMPLETE,53042149,submission.csv
+2026-05-27 06:56:45.987000,Notebook BirdCLEF+ 2026 | EoS.8 | Version 1,0.95035,0.94216,COMPLETE,53075232,submission.csv
+2026-05-27 06:57:39.287000,Notebook bc26 gendaijin junseong eos6 may23 | Version 1,0.95035,0.94216,COMPLETE,53075254,submission.csv
+2026-05-27 09:19:19.227000,Notebook BirdCLEF+ 2026 | EoS.8 | Version 2,0.95035,0.94215,COMPLETE,53079471,submission.csv
+2026-05-28 09:36:53.300000,Notebook BirdCLEF+ 2026 | EoS.9 | Version 1,0.95087,0.94138,COMPLETE,53111726,submission.csv
+2026-05-29 10:10:48.747000,Notebook BirdCLEF+ 2026 - EoS+OOF Gated PCEN | Version 1,,,COMPLETE,53147169,submission.csv
+2026-06-03 12:46:20.893000,Notebook BirdCLEF+ 2026 | EoS.9 | Version 2,0.95087,0.94138,COMPLETE,53327945,submission.csv

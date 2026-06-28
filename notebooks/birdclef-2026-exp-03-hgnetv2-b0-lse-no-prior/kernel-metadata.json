@@ -1,0 +1,25 @@
+{
+  "id": "ttgrcgrc/birdclef-2026-exp-03-hgnetv2-b0-lse-no-prior",
+  "id_no": 115013993,
+  "title": "BirdCLEF 2026 EXP-03 HGNetV2-B0 LSE no prior",
+  "code_file": "birdclef-2026-exp-03-hgnetv2-b0-lse-no-prior.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [
+    "gpu"
+  ],
+  "dataset_sources": [
+    "ttgrcgrc/hgnetv2-b0-ssld-stage2-ft-in1k-weights"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [
+    "birdclef-2026"
+  ],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-private-byod/python@sha256:00377cd1b3d470a605bc5b0ceca79969e369644e9b36802242a1c70e627372f9",
+  "machine_shape": "Gpu"
+}
