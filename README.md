@@ -2,6 +2,27 @@
 
 Portfolio-ready research archive for my Kaggle BirdCLEF 2026 work.
 
+## What This Repo Shows
+
+This repository is not only a dump of Kaggle notebooks. It is a cleaned research
+artifact that explains the solution path, the score progression, the modeling
+choices and the reproducibility contract behind the final submissions.
+
+The competition solution combined:
+
+- **Perch v2 transfer learning**: logits and embeddings from Google's bird
+  vocalization model used as the main acoustic representation.
+- **Soundscape windowing**: each 60-second file processed as `12 x 5s` temporal
+  windows to keep local calls while reasoning over the whole soundscape.
+- **Temporal sequence modeling**: ProtoSSM/ResidualSSM-style correction layers
+  over Perch features instead of independent window predictions only.
+- **Ecological priors**: site, hour and taxonomy priors for calibration, with
+  care around public/private leaderboard mismatch.
+- **SED diversity**: EfficientNet sound event detection and pseudo-label
+  experiments used as ensemble diversity when calibration was stable.
+- **Competition ensembling**: TTA, smoothing, rank blending, gated blending and
+  taxonomy-aware post-processing.
+
 ## Result Snapshot
 
 - Competition: [BirdCLEF 2026](https://www.kaggle.com/competitions/birdclef-2026)
@@ -22,6 +43,10 @@ Portfolio-ready research archive for my Kaggle BirdCLEF 2026 work.
 - `data/leaderboard_summary.csv` - final public leaderboard row.
 - `data/notebook_inventory.csv` - notebook inventory and detected technical themes.
 - `src/artifact_summary.py` - utility script to rebuild the local artifact summary.
+- `src/train.py` - reproducible PyTorch training entrypoint for the compact
+  temporal sequence head trained on precomputed acoustic features.
+- `src/infer.py` - fold averaging, prior fusion and rank-blend inference script
+  for Kaggle-style submission generation.
 
 ## Technical Themes
 
@@ -43,3 +68,42 @@ python src/artifact_summary.py --root .
 ```
 
 This script expects the Kaggle-pulled notebooks and curated CSV files to already exist locally.
+
+## Scripted Pipeline
+
+The original Kaggle runs relied on notebooks because the competition environment
+requires attached datasets and offline artifacts. The scripts below expose the
+same architecture in a cleaner form for review and reuse.
+
+Train the temporal correction head from exported features:
+
+```bash
+python src/train.py \
+  --features artifacts/birdclef_train_features.npz \
+  --output-dir artifacts/birdclef_sequence_head \
+  --epochs 8 \
+  --folds 5
+```
+
+Run fold-averaged inference with optional ecological priors:
+
+```bash
+python src/infer.py \
+  --features artifacts/birdclef_test_features.npz \
+  --classes artifacts/classes.txt \
+  --checkpoint artifacts/birdclef_sequence_head/bird_sequence_head_fold1.pt \
+  --checkpoint artifacts/birdclef_sequence_head/bird_sequence_head_fold2.pt \
+  --priors artifacts/site_hour_taxonomy_priors.csv \
+  --output submission.csv
+```
+
+Expected feature contract:
+
+- `X`: `float32`, shape `[n_soundscapes, n_windows, n_features]`
+- `y`: `float32`, multi-label targets for training, shape `[n_soundscapes, n_classes]`
+- `groups`: optional grouped-validation IDs, usually filename or recording group
+- `row_id`: required for inference submission rows
+
+The heavy feature extraction artifacts are intentionally not committed because
+they depend on Kaggle datasets/model weights and can be large. The scripts make
+the modeling layer explicit without leaking private data or bloating the repo.
