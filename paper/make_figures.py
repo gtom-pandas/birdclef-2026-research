@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 import pandas as pd
 
 
@@ -72,3 +73,60 @@ summary = {
     "recordings_max": int(counts.max()),
 }
 print(summary)
+
+
+def box(ax, xy, wh, text, color, fontsize=8):
+    x, y = xy
+    w, h = wh
+    patch = FancyBboxPatch(
+        (x, y), w, h, boxstyle="round,pad=0.015,rounding_size=0.015",
+        linewidth=1.0, edgecolor="#04364A", facecolor=color
+    )
+    ax.add_patch(patch)
+    ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=fontsize)
+    return (x, y, w, h)
+
+
+def arrow(ax, a, b):
+    ax.add_patch(FancyArrowPatch(a, b, arrowstyle="-|>", mutation_scale=10,
+                                 linewidth=1.0, color="#355C64"))
+
+
+fig, ax = plt.subplots(figsize=(11.2, 5.2))
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+ax.axis("off")
+
+box(ax, (0.015, 0.39), (0.105, 0.22), "1-min audio\n32 kHz\n12 × 5 s", "#DAFFFB")
+box(ax, (0.155, 0.67), (0.125, 0.18), "Perch v2\nlogits + 1536-D\nembeddings", "#B8E8E5")
+box(ax, (0.155, 0.15), (0.125, 0.18), "log-mel\nSED inputs", "#FFE1C2")
+box(ax, (0.325, 0.70), (0.15, 0.13), "mapping + priors\n+ MLP probes", "#B8E8E5")
+box(ax, (0.325, 0.49), (0.15, 0.13), "LightProtoSSM\ncontext + prototypes", "#B8E8E5")
+box(ax, (0.325, 0.28), (0.15, 0.13), "ResidualSSM\nerror correction", "#B8E8E5")
+box(ax, (0.325, 0.07), (0.15, 0.13), "5-fold distilled\nEfficientNet SED", "#FFE1C2")
+box(ax, (0.525, 0.28), (0.15, 0.30), "Model_51\nrank fusion 0.60/0.40\nconditional gates\nfile + temporal rules", "#92D9D2")
+box(ax, (0.525, 0.69), (0.15, 0.13), "Model_22\npublic reproduction", "#D7CCF3")
+box(ax, (0.725, 0.43), (0.115, 0.16), "Direct blend\n3% / 97%", "#FFF0B5")
+box(ax, (0.875, 0.43), (0.11, 0.16), "Genus 0.15\nthen class 0.05", "#FFD19A")
+
+arrow(ax, (0.12, 0.53), (0.155, 0.76))
+arrow(ax, (0.12, 0.47), (0.155, 0.24))
+arrow(ax, (0.28, 0.76), (0.325, 0.765))
+arrow(ax, (0.28, 0.74), (0.325, 0.555))
+arrow(ax, (0.40, 0.49), (0.40, 0.41))
+arrow(ax, (0.28, 0.24), (0.325, 0.135))
+arrow(ax, (0.475, 0.765), (0.525, 0.52))
+arrow(ax, (0.475, 0.555), (0.525, 0.47))
+arrow(ax, (0.475, 0.345), (0.525, 0.40))
+arrow(ax, (0.475, 0.135), (0.525, 0.33))
+arrow(ax, (0.675, 0.755), (0.725, 0.54))
+arrow(ax, (0.675, 0.43), (0.725, 0.49))
+arrow(ax, (0.84, 0.51), (0.875, 0.51))
+
+ax.text(0.5, 0.96, "Reconstructed inference architecture of the private-best submission",
+        ha="center", va="center", fontsize=12, fontweight="bold", color="#04364A")
+ax.text(0.59, 0.23, "internal public ensemble", ha="center", fontsize=7, color="#355C64")
+fig.tight_layout()
+fig.savefig(OUT / "architecture.pdf", bbox_inches="tight")
+fig.savefig(OUT / "architecture.png", dpi=220, bbox_inches="tight")
+plt.close(fig)

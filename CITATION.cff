@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use this reproduction archive, please cite the technical report and the attributed upstream notebooks in SOURCES.md."
-title: "BirdCLEF+ 2026 EoS.8 Reproduction Archive"
+message: "If you use this research archive, please cite the technical report and the attributed upstream notebooks in SOURCES.md."
+title: "Taxonomy-Aware Ensembling of Perch Sequence Models and Distilled Sound Event Detectors for BirdCLEF+ 2026"
 type: software
 authors:
   - family-names: Graci
@@ -9,7 +9,7 @@ authors:
 repository-code: "https://github.com/gtom-pandas/birdclef-2026-research"
 url: "https://www.kaggle.com/competitions/birdclef-2026"
 date-released: 2026-07-21
-version: "1.0.0"
+version: "2.0.0"
 keywords:
   - bioacoustics
   - BirdCLEF
