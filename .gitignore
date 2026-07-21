@@ -19,3 +19,5 @@ notebooks/*
 *.zip
 *.log
 submission.csv
+paper/rendered/
+paper/birdclef2026_technical_report.pdf
