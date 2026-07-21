@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this reproduction archive, please cite the technical report and the attributed upstream notebooks in SOURCES.md."
+title: "BirdCLEF+ 2026 EoS.8 Reproduction Archive"
+type: software
+authors:
+  - family-names: Graci
+    given-names: Tom
+    orcid: "https://orcid.org/0009-0000-0448-4012"
+repository-code: "https://github.com/gtom-pandas/birdclef-2026-research"
+url: "https://www.kaggle.com/competitions/birdclef-2026"
+date-released: 2026-07-21
+version: "1.0.0"
+keywords:
+  - bioacoustics
+  - BirdCLEF
+  - reproducibility
+  - ensemble learning
+  - Kaggle

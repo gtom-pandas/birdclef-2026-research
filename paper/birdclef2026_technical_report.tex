@@ -1,0 +1,177 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2.05cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb,booktabs,graphicx,xcolor,hyperref,url}
+\usepackage{enumitem,fancyhdr,caption,subcaption,tabularx,float,cite}
+\definecolor{deepblue}{HTML}{04364A}
+\definecolor{teal}{HTML}{176B87}
+\hypersetup{colorlinks=true,linkcolor=deepblue,citecolor=teal,urlcolor=teal,pdfauthor={Tom Graci},pdftitle={BirdCLEF+ 2026 EoS.8 Reproduction and Ensemble Study}}
+\pagestyle{fancy}\fancyhf{}
+\lhead{BirdCLEF+ 2026 -- Reproduction and Ensemble Study}
+\rhead{Tom Graci}\cfoot{\thepage}\setlength{\headheight}{14pt}
+\setlist[itemize]{leftmargin=*,topsep=3pt,itemsep=2pt}
+\captionsetup{font=small,labelfont=bf}
+
+\title{\vspace{-1.2cm}\textcolor{deepblue}{\textbf{Reproducing and Integrating Public Bioacoustic Pipelines}}\\[3pt]
+\Large An EoS.8 Ensemble Study for the BirdCLEF+ 2026 Challenge}
+\author{\textbf{Tom Graci}\\Independent Researcher\\
+ORCID: \href{https://orcid.org/0009-0000-0448-4012}{0009-0000-0448-4012}\\
+\href{https://github.com/gtom-pandas/birdclef-2026-research}{github.com/gtom-pandas/birdclef-2026-research}}
+\date{July 21, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+BirdCLEF+ 2026 evaluated multi-label recognition of 234 animal taxa in five-second windows of passive acoustic monitoring data from Brazil's Pantanal. This report documents an independent competition study centred on reproducing, integrating and selecting publicly shared BirdCLEF pipelines under Kaggle's offline CPU constraint. The best private submission, EoS.8, combined two attributed component predictions: 3\% from a Perch--ProtoSSM--ResidualSSM reproduction pipeline (Model\_22) and 97\% from an EoS.4 rank-power ensemble (Model\_51). A deterministic post-processing stage then mixed probabilities within scientific genera ($\alpha=0.15$) and taxonomic classes ($\alpha=0.05$). EoS.8 obtained public/private macro ROC-AUC scores of 0.95035/\textbf{0.94216}. The final selected EoS.9 submission improved the public score to 0.95087 but decreased the private score to 0.94138; the completed private leaderboard rank was \textbf{947 of 4,094 teams}. The contribution claimed here is competition integration, experiment tracking, ensemble selection, taxonomy-aware post-processing and a reproducibility audit---not original authorship of the upstream Perch, ProtoSSM, ResidualSSM or distilled SED architectures. The exact EoS.8 notebook, provenance metadata, score history and a tested implementation of its score-defining final blend are released with the report.
+\end{abstract}
+
+\noindent\textbf{Keywords:} bioacoustics, passive acoustic monitoring, BirdCLEF, reproducibility, ensemble learning, Perch v2, taxonomy smoothing, Kaggle.
+
+\section{Introduction}
+Passive acoustic monitoring can observe wildlife communities at temporal and geographic scales that are difficult to cover manually. BirdCLEF+ 2026 focused on continuous recordings from the Pantanal, where approximately 1,000 recorders are being deployed across habitats and seasons \cite{kahl2026birdclef}. Competitors predicted one probability per target taxon for every five-second soundscape window. The evaluation used a macro-averaged ROC-AUC variant that skips classes having no positive example in the evaluated split.
+
+The practical challenge combined overlapping calls, field noise, incomplete labels, class imbalance, taxonomic mismatch between pretrained models and competition targets, and strict deployment constraints. Submissions had to run without internet access in a CPU notebook within 90 minutes \cite{kahl2026birdclef}. These conditions encouraged reuse of public pretrained assets and shared inference pipelines.
+
+This report is deliberately framed as a reproduction and ensemble study. The final EoS.8 notebook incorporated public pipelines from other competitors, then selected their weights and added taxonomy-aware smoothing. The central scientific requirement is therefore provenance: which components were reproduced, which choices were made in the author's notebook, and which numerical results are official.
+
+The report contributes:
+\begin{itemize}
+  \item a verified metadata analysis based on the official competition CSV files;
+  \item an exact description of the active EoS.8 execution path and its upstream sources;
+  \item a clean, tested reproduction of the score-defining 3/97 blend and taxonomy smoothing;
+  \item an extraction of the lightweight sequence-head training used inside Model\_51;
+  \item an honest comparison of the public-best and private-best submission choices.
+\end{itemize}
+
+\section{Background}
+\subsection{Transfer representations and spectrogram models}
+Perch embeddings are pretrained on large-scale birdsong data and have shown strong transfer performance for bioacoustic classification \cite{ghani2023perch}. Perch 2.0 extends this approach to multi-taxa data through self-distillation and prototype learning \cite{vanmerrienboer2025perch2}. Such representations are valuable when competition labels are sparse or do not cover every target.
+
+Spectrogram convolutional networks remain complementary. EfficientNet offers an effective accuracy--compute trade-off through compound scaling \cite{tan2019efficientnet}; distilled EfficientNet SED predictions supplied a different error profile from the Perch sequence branch in Model\_51. PCEN is another relevant field-audio technique because it combines dynamic-range compression with adaptive gain control and can suppress non-stationary background energy \cite{lostanlen2019pcen}.
+
+\subsection{Weak labels, long tails and temporal models}
+BirdCLEF solutions commonly use transfer learning, segmentation, augmentation and ensembling to bridge the gap between focal recordings and polyphonic soundscapes \cite{conde2021birdclef}. Long-tailed recognition and few-shot behaviour are persistent concerns \cite{conde2022longtail}. Pseudo multi-label training has also been explored to represent co-occurring species more realistically \cite{pham2024pseudomultilabel}.
+
+Structured state-space models offer efficient sequence processing \cite{gu2021s4}, and audio-specific SSM research supports their application to temporal acoustic features \cite{zhang2024audiomamba}. In EoS.8 these ideas entered through attributed upstream notebooks; this report does not claim a new general SSM architecture.
+
+\section{Challenge Data and Verified EDA}
+The downloaded \texttt{train.csv} contains 35,549 focal recordings and \texttt{taxonomy.csv} defines 234 target classes. Only 206 targets occur as primary labels. Exactly 4,372 rows contain at least one secondary label. Among observed primary classes, counts range from 1 to 499 recordings with a median of 125. Audio duration is not present in the metadata table, so no duration distribution is inferred.
+
+\begin{table}[H]
+\centering
+\caption{Statistics computed directly from official BirdCLEF+ 2026 metadata.}
+\begin{tabular}{lr}\toprule
+Property & Value\\\midrule
+Training recordings & 35,549\\
+Competition targets & 234\\
+Targets observed as primary labels & 206\\
+Targets absent as primary labels & 28\\
+Rows with secondary labels & 4,372 (12.30\%)\\
+Recordings per observed class & min 1; median 125; max 499\\
+Taxonomic composition & 162 Aves; 72 non-avian\\
+Prediction window & 5 seconds\\\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.54\textwidth}\includegraphics[width=\linewidth]{figures/class_frequency.pdf}\caption{Primary-label long tail.}\end{subfigure}\hfill
+\begin{subfigure}{0.43\textwidth}\includegraphics[width=\linewidth]{figures/taxonomy.pdf}\caption{Target taxonomy.}\end{subfigure}
+\caption{EDA generated from the official metadata. Non-avian targets comprise 35 Amphibia, 28 Insecta, 8 Mammalia and 1 Reptilia classes.}
+\end{figure}
+
+The long tail and the 28 targets absent as primary labels explain why pretrained transfer features, taxonomic mappings and model diversity were prominent in the public pipelines. They do not, by themselves, establish that every post-processing operation generalises.
+
+\section{Provenance of the Best Submission}
+\subsection{Selection of EoS.8}
+The official submission archive contains 79 Kaggle submissions, of which 50 retained score rows. EoS.8 version 1 (submission reference 53075232) is the best private result: 0.95035 public and 0.94216 private. EoS.9 reached 0.95087 public but 0.94138 private. This report therefore uses EoS.8 as the reference system.
+
+\subsection{Attributed components}
+Table~\ref{tab:provenance} records the active top-level inputs. The source notebook and Kaggle version identifiers were recovered from the authenticated EoS.8 metadata and notebook text.
+
+\begin{table}[H]
+\centering
+\caption{Active EoS.8 components and provenance.}
+\label{tab:provenance}
+\begin{tabularx}{\textwidth}{lXlr}\toprule
+Component & Public source & Role & Weight\\\midrule
+Model\_22 & yukiZ, Perch+ProtoSSM+ResidualSSM reproduction, version 309368265 \cite{yukiz2026model22} & full prediction CSV & 0.03\\
+Model\_51 & Derek, EoS.4 rank-power experiment, version 320064228 \cite{derek2026model51} & full prediction CSV & 0.97\\\bottomrule
+\end{tabularx}
+\end{table}
+
+Model\_51 itself is a public ensemble/reproduction notebook. Its active path included Perch v2 representations, LightProtoSSM and ResidualSSM heads trained during execution, MLP probes, ecological priors, distilled EfficientNet SED inference, rank blending and multiple post-processing gates. These architectural elements are described to explain the dependency graph, not claimed as original contributions of this study.
+
+\section{EoS.8 Method}
+\subsection{Score-defining top-level blend}
+Let $P^{22},P^{51}\in[0,1]^{N\times234}$ be row-aligned component predictions. EoS.8 used a direct probability blend:
+\begin{equation}
+P^{(0)}=0.03P^{22}+0.97P^{51}.
+\end{equation}
+The archived configuration specifies Model\_22 and Model\_51 with weights 0.03/0.97. Its active mode was taxonomy smoothing; no top-level rank blend was active.
+
+\subsection{Taxonomy smoothing}
+For each multi-member scientific genus $g$, the genus mean is
+\begin{equation}
+\bar{P}_{ig}=\frac{1}{|g|}\sum_{c\in g}P^{(0)}_{ic},
+\end{equation}
+and each member is updated sequentially as
+\begin{equation}
+P^{(g)}_{ic}=0.85P^{(0)}_{ic}+0.15\bar{P}_{ig}.
+\end{equation}
+The same operation is then applied to each multi-member taxonomic class $k$ with $\alpha=0.05$:
+\begin{equation}
+P^{\mathrm{final}}_{ic}=0.95P^{(g)}_{ic}+0.05\bar{P}^{(g)}_{ik}.
+\end{equation}
+Scientific genera are extracted as the first token of \texttt{scientific\_name}. The order matters: genus smoothing precedes class smoothing. The released \texttt{src/infer.py} reproduces these exact operations and validates row IDs, columns, finiteness and probability bounds \cite{graci2026repo}.
+
+\subsection{Lightweight training inside Model\_51}
+The Model\_51 code trained two lightweight heads on cached 1,536-dimensional Perch embeddings. LightProtoSSM projected embeddings to 128 dimensions, injected site/hour embeddings, applied two bidirectional selective-SSM blocks with cross-attention, and classified windows through temperature-scaled class prototypes fused with Perch logits. Training used full-batch AdamW, a capped positive-class weight, binary cross-entropy with logits and a 0.15 logit-distillation term. The executed defaults were 40 epochs, learning rate $10^{-3}$ and patience 8.
+
+ResidualSSM concatenated the embeddings and first-pass logits, applied a smaller bidirectional selective-SSM block, and learned additive residuals $y-\sigma(z)$. Its executed defaults were 30 epochs, learning rate $10^{-3}$, patience 8 and a deterministic 15\% file-level validation split. These stages are extracted into \path{src/train.py}; Perch and distilled SED backbones were attached pretrained dependencies and were not trained by EoS.8.
+
+\section{Results and Interpretation}
+\begin{table}[H]
+\centering
+\caption{Selected official score milestones.}
+\begin{tabularx}{\textwidth}{lXrr}\toprule
+Date & Submission & Public & Private\\\midrule
+Apr 20 & Version 3 LightGBM & 0.92948 & 0.92345\\
+May 1 & ProtoSSM + EfficientNet & 0.93515 & 0.93640\\
+May 2 & ONNX Perch sequence + SED & 0.94307 & 0.93793\\
+May 18 & EoS.5 & 0.94903 & 0.94075\\
+May 27 & EoS.8, best private & 0.95035 & \textbf{0.94216}\\
+Jun 3 & EoS.9, final selected & \textbf{0.95087} & 0.94138\\\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.90\textwidth]{figures/score_progression.pdf}
+\caption{Official score progression for submissions with both public and private scores. The isolated score of 0.5 is a degenerate submission retained for auditability.}
+\end{figure}
+
+The completed private leaderboard lists the team \emph{T Soo} (Kaggle user \texttt{ttgrcgrc}) at rank 947 of 4,094 teams, or the top 23.1\%. EoS.9's public improvement of 0.00052 over EoS.8 coincided with a private decrease of 0.00078. This does not prove that EoS.9 is intrinsically inferior; it shows that public-score selection was not stable across the hidden split.
+
+No causal performance gain is assigned to taxonomy smoothing because the archive does not contain an otherwise identical scored ablation without that stage. Likewise, component weights were selected in the competition workflow, not estimated through a preserved independent validation experiment. The official leaderboard establishes the result of the whole submitted system only.
+
+\section{Reproducibility and Limitations}
+The release contains the exact EoS.8 notebook downloaded from the author's Kaggle account, its SHA-256 hash, Kaggle kernel metadata, upstream notebook identifiers, official submission history, tested final-blend code, extracted lightweight training code and metadata-generated figures \cite{graci2026repo}.
+
+Full raw-audio reproduction still requires the competition dataset and the attached Perch, ONNX, SED, cache and wheel assets listed in the repository's \texttt{SOURCES.md}. These are not redistributed. The upstream notebooks remain authoritative for their own code provenance and licensing.
+
+Scientifically, the work is limited by public-leaderboard iteration, absence of a preserved independent ablation matrix, noisy/weak labels and possible geographic or temporal split shift. A private Kaggle score demonstrates performance on that hidden test set, not prospective ecological validity across new sites, seasons or recorder hardware.
+
+\section{Conclusion}
+The best private result in this competition record was produced by EoS.8, an attributed integration of two public BirdCLEF pipelines followed by a 3/97 direct blend and sequential genus/class smoothing. It achieved a private macro ROC-AUC of 0.94216 and the account finished 947th of 4,094 teams. The defensible contribution is the reproduction and operational integration of public components, the experiment and submission selection process, taxonomy-aware finalisation, and the subsequent provenance/reproducibility audit. Framing the work this way aligns the paper, code and Kaggle evidence while avoiding unsupported claims of architectural authorship.
+
+\section*{Data and Code Availability}
+Competition data and rules are available from Kaggle \cite{kahl2026birdclef}. Code, the canonical EoS.8 notebook, provenance metadata and the paper source are available at \url{https://github.com/gtom-pandas/birdclef-2026-research}.
+
+\section*{Acknowledgements}
+The author thanks the BirdCLEF+ organisers and data contributors. Specific credit is due to yukiZ for the Model\_22 reproduction pipeline \cite{yukiz2026model22}, Derek for the Model\_51 EoS.4/rank-power notebook \cite{derek2026model51}, and the authors of the public models and datasets listed in \texttt{SOURCES.md}. This independent report does not imply endorsement by those contributors or organisations.
+
+\bibliographystyle{plain}\bibliography{references}
+\end{document}

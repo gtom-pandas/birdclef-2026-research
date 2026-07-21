@@ -1,0 +1,3 @@
+result_type,rank,teams,public_score,private_score,submission_ref,notebook
+best_private,947,4094,0.95035,0.94216,53075232,BirdCLEF+ 2026 | EoS.8
+final_selected,947,4094,0.95087,0.94138,53327945,BirdCLEF+ 2026 | EoS.9

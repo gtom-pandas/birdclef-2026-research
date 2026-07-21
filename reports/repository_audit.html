@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>BirdCLEF+ 2026 repository alignment audit</title>
+  <style>body{font:16px/1.5 system-ui;max-width:900px;margin:40px auto;padding:0 20px;color:#18323d}code{background:#eef5f6;padding:2px 5px}h1,h2{color:#07566a}.ok{color:#087f5b}.limit{color:#b35c00}</style>
+</head>
+<body>
+  <h1>BirdCLEF+ 2026 repository alignment audit</h1>
+  <p><strong>Date:</strong> 2026-07-21</p>
+  <h2 class="ok">Aligned source of truth</h2>
+  <ul>
+    <li>Best private submission: EoS.8 v1, reference 53075232, private score 0.94216.</li>
+    <li>Canonical notebook downloaded from the authenticated Kaggle account and hashed.</li>
+    <li>Final 3% Model_22 / 97% Model_51 blend and taxonomy smoothing reproduced in <code>src/infer.py</code>.</li>
+    <li>Model_51 lightweight ProtoSSM and ResidualSSM training stages extracted into <code>src/train.py</code>.</li>
+    <li>Upstream authors, Kaggle notebook IDs, versions and attached assets recorded in <code>SOURCES.md</code>.</li>
+  </ul>
+  <h2 class="limit">Known boundary</h2>
+  <p>Raw Perch, distilled SED and upstream cache generation remain in the canonical notebook and require Kaggle-attached model/data assets. The repository does not claim independent authorship of those upstream architectures.</p>
+  <h2>Validation</h2>
+  <p>Python compilation, synthetic ensemble tests, paper compilation, PDF text checks and rendered-page inspection are required before release.</p>
+</body>
+</html>

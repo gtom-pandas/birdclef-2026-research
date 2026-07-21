@@ -1,10 +1,13 @@
-"""
-BirdCLEF inference/blending entrypoint for portfolio-grade reproducibility.
+"""Reproduce the final, score-defining EoS.8 ensemble stage.
 
-The Kaggle notebooks used Perch v2, SED models, ecological priors and temporal
-heads. This script covers the final lightweight stage: load precomputed test
-features, average fold checkpoints, optionally fuse priors, and write a Kaggle
-submission-style CSV.
+The best private submission (0.94216) combined the complete Model_22 and
+Model_51 prediction tables with weights 0.03 and 0.97, then applied genus and
+taxonomic-class smoothing with alpha values 0.15 and 0.05.  This script
+reproduces that final stage exactly and validates the Kaggle submission schema.
+
+The expensive component inference remains preserved in the canonical Kaggle
+notebook under ``notebooks/birdclef-2026-eos-8.ipynb``.  Model_22 and Model_51
+are attributed third-party-derived pipelines; see ``SOURCES.md``.
 """
 
 from __future__ import annotations
@@ -14,83 +17,138 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import torch
-from torch import nn
+
+MODEL_22_WEIGHT = 0.03
+MODEL_51_WEIGHT = 0.97
+GENUS_ALPHA = 0.15
+CLASS_ALPHA = 0.05
 
 
-class BirdSequenceHead(nn.Module):
-    def __init__(self, input_dim: int, hidden_dim: int, n_classes: int) -> None:
-        super().__init__()
-        self.temporal = nn.GRU(input_dim, hidden_dim, batch_first=True, bidirectional=True)
-        self.attention = nn.Sequential(nn.Linear(hidden_dim * 2, hidden_dim), nn.Tanh(), nn.Linear(hidden_dim, 1))
-        self.head = nn.Sequential(nn.LayerNorm(hidden_dim * 2), nn.Dropout(0.0), nn.Linear(hidden_dim * 2, n_classes))
+def read_submission(path: Path) -> pd.DataFrame:
+    frame = pd.read_csv(path)
+    if "row_id" not in frame.columns:
+        raise ValueError(f"row_id column missing in {path}")
+    if not frame["row_id"].is_unique:
+        raise ValueError(f"duplicate row_id values in {path}")
+    probability_columns = [column for column in frame.columns if column != "row_id"]
+    if not probability_columns:
+        raise ValueError(f"no probability columns in {path}")
+    values = frame[probability_columns].to_numpy(dtype=np.float32)
+    if not np.isfinite(values).all():
+        raise ValueError(f"NaN or infinite probability in {path}")
+    if values.min() < 0.0 or values.max() > 1.0:
+        raise ValueError(f"probability outside [0, 1] in {path}")
+    frame["row_id"] = frame["row_id"].astype(str)
+    return frame.set_index("row_id")
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        sequence, _ = self.temporal(x)
-        weights = torch.softmax(self.attention(sequence), dim=1)
-        return self.head((sequence * weights).sum(dim=1))
 
-
-def load_checkpoints(paths: list[Path], device: torch.device) -> list[nn.Module]:
-    models = []
-    for path in paths:
-        checkpoint = torch.load(path, map_location=device)
-        model = BirdSequenceHead(
-            checkpoint["input_dim"],
-            checkpoint["hidden_dim"],
-            checkpoint["n_classes"],
+def weighted_component_blend(
+    model_22: pd.DataFrame,
+    model_51: pd.DataFrame,
+) -> pd.DataFrame:
+    """Apply the active EoS.8 top-level 3/97 direct blend."""
+    if list(model_22.columns) != list(model_51.columns):
+        raise ValueError("Model_22 and Model_51 probability columns differ")
+    missing = model_22.index.difference(model_51.index)
+    extra = model_51.index.difference(model_22.index)
+    if len(missing) or len(extra):
+        raise ValueError(
+            f"row_id mismatch: missing_from_model_51={len(missing)}, "
+            f"extra_in_model_51={len(extra)}"
         )
-        model.load_state_dict(checkpoint["model_state"])
-        model.to(device)
-        model.eval()
-        models.append(model)
-    return models
+    aligned_51 = model_51.loc[model_22.index, model_22.columns]
+    return MODEL_22_WEIGHT * model_22 + MODEL_51_WEIGHT * aligned_51
 
 
-def apply_rank_blend(probs: np.ndarray, weight: float) -> np.ndarray:
-    if weight <= 0:
-        return probs
-    ranks = np.argsort(np.argsort(probs, axis=1), axis=1).astype("float32")
-    ranks = ranks / np.maximum(1, probs.shape[1] - 1)
-    return (1.0 - weight) * probs + weight * ranks
+def taxonomy_smoothing(
+    predictions: pd.DataFrame,
+    taxonomy: pd.DataFrame,
+    genus_alpha: float = GENUS_ALPHA,
+    class_alpha: float = CLASS_ALPHA,
+) -> pd.DataFrame:
+    """Apply the exact v221 genus-then-class smoothing used by EoS.8."""
+    required = {"primary_label", "scientific_name", "class_name"}
+    missing = required.difference(taxonomy.columns)
+    if missing:
+        raise ValueError(f"taxonomy is missing columns: {sorted(missing)}")
+    taxonomy = taxonomy.copy()
+    taxonomy["primary_label"] = taxonomy["primary_label"].astype(str)
+    label_to_genus = {
+        row.primary_label: str(row.scientific_name).split(" ")[0]
+        for row in taxonomy.itertuples(index=False)
+    }
+    label_to_class = {
+        row.primary_label: str(row.class_name)
+        for row in taxonomy.itertuples(index=False)
+    }
+    genus_groups: dict[str, list[str]] = {}
+    class_groups: dict[str, list[str]] = {}
+    for column in predictions.columns:
+        genus_groups.setdefault(label_to_genus.get(column, column), []).append(column)
+        class_name = label_to_class.get(column, "")
+        if class_name:
+            class_groups.setdefault(class_name, []).append(column)
+    probabilities = predictions.to_numpy(dtype=np.float32, copy=True)
+    column_positions = {column: index for index, column in enumerate(predictions.columns)}
+    for members in genus_groups.values():
+        if len(members) <= 1:
+            continue
+        positions = [column_positions[member] for member in members]
+        mean = probabilities[:, positions].mean(axis=1, keepdims=True)
+        probabilities[:, positions] = (
+            (1.0 - genus_alpha) * probabilities[:, positions] + genus_alpha * mean
+        )
+    for members in class_groups.values():
+        if len(members) <= 1:
+            continue
+        positions = [column_positions[member] for member in members]
+        mean = probabilities[:, positions].mean(axis=1, keepdims=True)
+        probabilities[:, positions] = (
+            (1.0 - class_alpha) * probabilities[:, positions] + class_alpha * mean
+        )
+    return pd.DataFrame(
+        probabilities, index=predictions.index, columns=predictions.columns
+    )
+
+
+def align_to_sample(predictions: pd.DataFrame, sample_path: Path) -> pd.DataFrame:
+    sample = pd.read_csv(sample_path)
+    sample["row_id"] = sample["row_id"].astype(str)
+    target_columns = sample.columns[1:].tolist()
+    if set(target_columns) != set(predictions.columns):
+        raise ValueError("prediction columns do not match sample_submission.csv")
+    if set(sample["row_id"]) != set(predictions.index):
+        raise ValueError("prediction row_id values do not match sample_submission.csv")
+    output = predictions.loc[sample["row_id"], target_columns].reset_index()
+    output.columns = sample.columns
+    return output
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--features", required=True, help="NPZ with X and row_id arrays.")
-    parser.add_argument("--classes", required=True, help="Text file with one target class per line.")
-    parser.add_argument("--checkpoint", action="append", required=True, help="Fold checkpoint path. Can be repeated.")
-    parser.add_argument("--priors", default=None, help="Optional CSV with row_id plus class prior columns.")
-    parser.add_argument("--prior-weight", type=float, default=0.08)
-    parser.add_argument("--rank-weight", type=float, default=0.05)
-    parser.add_argument("--output", default="submission.csv")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--model-22", required=True, type=Path)
+    parser.add_argument("--model-51", required=True, type=Path)
+    parser.add_argument("--taxonomy", required=True, type=Path)
+    parser.add_argument("--sample-submission", type=Path)
+    parser.add_argument("--output", type=Path, default=Path("submission.csv"))
     args = parser.parse_args()
-
-    payload = np.load(args.features, allow_pickle=True)
-    x = payload["X"].astype("float32")
-    row_ids = payload["row_id"].astype(str)
-    classes = [line.strip() for line in Path(args.classes).read_text(encoding="utf-8").splitlines() if line.strip()]
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    models = load_checkpoints([Path(p) for p in args.checkpoint], device)
-
-    with torch.no_grad():
-        tensor_x = torch.from_numpy(x).to(device)
-        fold_probs = [torch.sigmoid(model(tensor_x)).detach().cpu().numpy() for model in models]
-    probs = np.mean(fold_probs, axis=0)
-
-    if args.priors:
-        priors = pd.read_csv(args.priors).set_index("row_id").reindex(row_ids)
-        prior_values = priors[classes].fillna(0.0).to_numpy(dtype="float32")
-        probs = (1.0 - args.prior_weight) * probs + args.prior_weight * prior_values
-
-    probs = apply_rank_blend(probs, args.rank_weight)
-    probs = np.clip(probs, 0.0, 1.0)
-
-    submission = pd.DataFrame(probs, columns=classes)
-    submission.insert(0, "row_id", row_ids)
-    submission.to_csv(args.output, index=False)
-    print(f"Wrote {args.output} with shape {submission.shape}")
+    model_22 = read_submission(args.model_22)
+    model_51 = read_submission(args.model_51)
+    direct = weighted_component_blend(model_22, model_51)
+    smoothed = taxonomy_smoothing(direct, pd.read_csv(args.taxonomy))
+    if args.sample_submission:
+        output = align_to_sample(smoothed, args.sample_submission)
+    else:
+        output = smoothed.reset_index()
+    values = output.iloc[:, 1:].to_numpy(dtype=np.float32)
+    if not np.isfinite(values).all() or values.min() < 0.0 or values.max() > 1.0:
+        raise ValueError("final EoS.8 probabilities failed validation")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    output.to_csv(args.output, index=False)
+    print(
+        f"Wrote {args.output}: rows={len(output)}, classes={output.shape[1]-1}, "
+        f"min={values.min():.6f}, max={values.max():.6f}"
+    )
 
 
 if __name__ == "__main__":

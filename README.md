@@ -1,113 +1,128 @@
-# BirdCLEF 2026 Research
+# BirdCLEF+ 2026 — EoS.8 Reproduction Archive
 
-Portfolio-ready research archive for my Kaggle BirdCLEF 2026 work. The repo is
-kept intentionally compact: no raw notebook dump, no model weights, no Kaggle
-datasets. It keeps the solution narrative, curated metadata and executable
-reference scripts.
+Evidence-backed archive of my best private BirdCLEF+ 2026 submission.
 
-## What This Repo Shows
+## Result
 
-This repository is not only a dump of Kaggle notebooks. It is a cleaned research
-artifact that explains the solution path, the score progression, the modeling
-choices and the reproducibility contract behind the final submissions.
+| Item | Verified value |
+| --- | ---: |
+| Team / Kaggle user | `T Soo` / `ttgrcgrc` |
+| Best private submission | `BirdCLEF+ 2026 \| EoS.8`, version 1 |
+| Public / private score | `0.95035` / **`0.94216`** |
+| Submission reference | `53075232` |
+| Final private rank | **947 / 4,094 teams** |
+| Final selected EoS.9 private score | `0.94138` |
 
-The competition solution combined:
+EoS.8 is the reference because it produced the highest private score in my
+official submission history. EoS.9 scored higher on the public split but lower
+on the private split.
 
-- **Perch v2 transfer learning**: logits and embeddings from Google's bird
-  vocalization model used as the main acoustic representation.
-- **Soundscape windowing**: each 60-second file processed as `12 x 5s` temporal
-  windows to keep local calls while reasoning over the whole soundscape.
-- **Temporal sequence modeling**: ProtoSSM/ResidualSSM-style correction layers
-  over Perch features instead of independent window predictions only.
-- **Ecological priors**: site, hour and taxonomy priors for calibration, with
-  care around public/private leaderboard mismatch.
-- **SED diversity**: EfficientNet sound event detection and pseudo-label
-  experiments used as ensemble diversity when calibration was stable.
-- **Competition ensembling**: TTA, smoothing, rank blending, gated blending and
-  taxonomy-aware post-processing.
+## What the best submission actually was
 
-## Result Snapshot
+EoS.8 was an integration and ensemble notebook, not a wholly original model
+trained from scratch. The active final path was:
 
-- Competition: [BirdCLEF 2026](https://www.kaggle.com/competitions/birdclef-2026)
-- Team: `T Soo`
-- Kaggle user: `ttgrcgrc`
-- Public leaderboard rank: `574 / 4095`
-- Public score: `0.95087`
-- Best observed private score in submissions: `0.94216`
-- Final selected submission: `BirdCLEF+ 2026 | EoS.9`
-- Total submissions: `79`
-
-## Repository Map
-
-- `reports/research_report.md` - full research narrative, bottlenecks, and lessons learned.
-- `reports/portfolio_blurb.md` - short text blocks for portfolio integration.
-- `docs/experiment_summary.md` - compact replacement for the removed notebook dump.
-- `data/submissions.csv` - curated submission history.
-- `data/leaderboard_summary.csv` - final public leaderboard row.
-- `data/notebook_inventory.csv` - notebook inventory and detected technical themes.
-- `src/artifact_summary.py` - utility script to summarize the curated CSV metadata.
-- `src/train.py` - reproducible PyTorch training entrypoint for the compact
-  temporal sequence head trained on precomputed acoustic features.
-- `src/infer.py` - fold averaging, prior fusion and rank-blend inference script
-  for Kaggle-style submission generation.
-
-## Technical Themes
-
-The work evolved from Perch-based audio inference and lightweight tabular/probe baselines into a stacked soundscape system:
-
-- Perch v2 logits and embeddings as the main acoustic backbone.
-- 60-second soundscape processing split into 12 windows of 5 seconds.
-- Site/hour/taxonomy priors for ecological calibration.
-- MLP probes and PCA features over Perch embeddings.
-- ProtoSSM / LightProtoSSM temporal modeling.
-- ResidualSSM second-pass correction.
-- EfficientNet SED and pseudo-label experiments.
-- TTA, smoothing, rank blending, gated blending, and taxonomy-aware post-processing.
-
-## Reproduce Metadata Summary
-
-```bash
-python src/artifact_summary.py --root .
+```text
+Model_22 prediction (3%) ─┐
+                          ├─ direct probability blend
+Model_51 prediction (97%) ┘
+          ↓
+genus smoothing (alpha = 0.15)
+          ↓
+taxonomic-class smoothing (alpha = 0.05)
+          ↓
+submission.csv
 ```
 
-This script reads the curated CSV files only. Raw notebooks were removed from
-GitHub because they made the repo harder to review without adding much signal.
+- **Model_22** came from yukiZ's public Perch + ProtoSSM + ResidualSSM
+  reproduction pipeline.
+- **Model_51** came from Derek's public EoS.4 / rank-power experiment. Its
+  internal active path combined a LightProtoSSM branch and a distilled SED
+  branch, including on-the-fly lightweight head training and post-processing.
+- My EoS.8 notebook selected the 3/97 top-level blend and added the v221
+  taxonomy-smoothing stage.
 
-## Scripted Pipeline
+See [SOURCES.md](SOURCES.md) for exact Kaggle slugs, versions, authors and
+dependency metadata. This attribution is essential: the repository documents
+my competition integration and experiment path without claiming authorship of
+the upstream architectures.
 
-The original Kaggle runs relied on notebooks because the competition environment
-requires attached datasets and offline artifacts. The scripts below expose the
-same architecture in a cleaner form for review and reuse.
+## Repository contents
 
-Train the temporal correction head from exported features:
+- `notebooks/birdclef-2026-eos-8.ipynb` — exact notebook downloaded from my
+  Kaggle account; SHA-256 is recorded in `SOURCES.md`.
+- `src/train.py` — cleaned extraction of the LightProtoSSM and ResidualSSM
+  training stages executed inside Model_51.
+- `src/infer.py` — exact score-defining EoS.8 final blend and taxonomy
+  smoothing, with explicit validation.
+- `tests/test_infer.py` — synthetic regression tests for blend, alignment and
+  smoothing behavior.
+- `data/submissions.csv` — curated official submission history.
+- `data/notebook_inventory.csv` — experiment/notebook inventory.
+- `paper/birdclef technical paper GRACI.pdf` — compiled research paper intended
+  for the matching Zenodo/ORCID record.
+- `paper/` — LaTeX source, bibliography and reproducible metadata figures.
 
-```bash
-python src/train.py \
-  --features artifacts/birdclef_train_features.npz \
-  --output-dir artifacts/birdclef_sequence_head \
-  --epochs 8 \
-  --folds 5
-```
+## Reproduce the final ensemble
 
-Run fold-averaged inference with optional ecological priors:
+The two component CSVs are produced by the canonical notebook and are not
+redistributed because they depend on Kaggle competition inputs and attached
+third-party model assets.
 
 ```bash
 python src/infer.py \
-  --features artifacts/birdclef_test_features.npz \
-  --classes artifacts/classes.txt \
-  --checkpoint artifacts/birdclef_sequence_head/bird_sequence_head_fold1.pt \
-  --checkpoint artifacts/birdclef_sequence_head/bird_sequence_head_fold2.pt \
-  --priors artifacts/site_hour_taxonomy_priors.csv \
+  --model-22 subm_22.csv \
+  --model-51 subm_51.csv \
+  --taxonomy /kaggle/input/competitions/birdclef-2026/taxonomy.csv \
+  --sample-submission /kaggle/input/competitions/birdclef-2026/sample_submission.csv \
   --output submission.csv
 ```
 
-Expected feature contract:
+The final combiner is deterministic. Given the original `subm_22.csv`,
+`subm_51.csv` and taxonomy, it reproduces the EoS.8 ensemble logic.
 
-- `X`: `float32`, shape `[n_soundscapes, n_windows, n_features]`
-- `y`: `float32`, multi-label targets for training, shape `[n_soundscapes, n_classes]`
-- `groups`: optional grouped-validation IDs, usually filename or recording group
-- `row_id`: required for inference submission rows
+## Train the lightweight sequence heads
 
-The heavy feature extraction artifacts are intentionally not committed because
-they depend on Kaggle datasets/model weights and can be large. The scripts make
-the modeling layer explicit without leaking private data or bloating the repo.
+The best notebook trained LightProtoSSM and ResidualSSM on cached Perch
+embeddings during execution. It did **not** train Perch v2 or the distilled SED
+backbone. Export the arrays described in `src/train.py`, then run:
+
+```bash
+python src/train.py \
+  --features artifacts/eos8_model51_train_features.npz \
+  --output-dir artifacts/eos8_heads
+```
+
+The canonical notebook remains the source of truth for raw-audio loading,
+Perch/ONNX inference, MLP probes, prior construction, distilled SED inference
+and creation of the component CSVs.
+
+## Validation
+
+```bash
+python -m pytest -q
+python -m py_compile src/train.py src/infer.py
+python paper/make_figures.py
+```
+
+## Reproducibility boundary
+
+Fully reproduced here:
+
+- exact EoS.8 notebook and Kaggle metadata;
+- official score history;
+- score-defining 3/97 blend;
+- genus and class smoothing;
+- lightweight sequence-head architecture and training schedule;
+- metadata EDA and paper figures.
+
+Requires Kaggle-attached assets:
+
+- BirdCLEF competition audio and labels;
+- Perch v2 model and label metadata;
+- ONNX Perch package;
+- distilled SED checkpoints;
+- caches/checkpoints attached by the upstream notebooks.
+
+No local cross-validation result is presented as official unless it appears in
+the archived notebook. No missing experiment detail is reconstructed by guess.

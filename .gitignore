@@ -1,4 +1,5 @@
 .ipynb_checkpoints/
+.pytest_cache/
 __pycache__/
 *.pyc
 
@@ -6,8 +7,13 @@ __pycache__/
 .kaggle/
 kaggle.json
 raw/
-notebooks/
+tmp/
+data/competition_metadata/
 artifacts/
+
+# Keep the single canonical best-submission notebook.
+notebooks/*
+!notebooks/birdclef-2026-eos-8.ipynb
 
 # Generated local files
 *.zip
